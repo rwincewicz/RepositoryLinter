@@ -1,7 +1,9 @@
 $: << File.expand_path("../lib", __FILE__)
 
 require "sinatra"
-require "yajl"
+require "sinatra/jsonp"
+require "rack/parser"
+require "multi_json"
 require "crossref"
 require "romeo"
 
@@ -9,14 +11,14 @@ configure do
   set :server, :puma
 end
 
-post "/validate" do
-  parser = Yajl::Parser.new
-  encoder = Yajl::Encoder.new
-  metadata = parser.parse(request.body)
+use Rack::Parser, parsers: {
+  "application/json" => -> (body) { MultiJson.load(body) }
+}
 
+post "/validate" do
   response = {}
 
-  unless metadata.has_key?("publisher")
+  unless params.has_key?("publisher")
     response[:errors] ||= []
     response[:errors] << "Publisher field is missing"
   end
@@ -25,31 +27,31 @@ post "/validate" do
   crossref = Crossref.new
   futures = []
 
-  if metadata.has_key?("issn")
+  if params.has_key?("issn")
     futures << [
       :publisher_by_issn,
-      Thread.new { romeo.issn(metadata.fetch("issn")) }
+      Thread.new { romeo.issn(params.fetch("issn")) }
     ]
   end
 
-  if metadata.has_key?("publisher")
+  if params.has_key?("publisher")
     futures << [
       :publisher_by_publisher,
-      Thread.new { romeo.publisher(metadata.fetch("publisher")) }
+      Thread.new { romeo.publisher(params.fetch("publisher")) }
     ]
   end
 
-  if metadata.has_key?("publication")
+  if params.has_key?("publication")
     futures << [
       :publisher_by_publication,
-      Thread.new { romeo.title(metadata.fetch("publication")) }
+      Thread.new { romeo.title(params.fetch("publication")) }
     ]
   end
 
-  if metadata.has_key?("id_number") && metadata.fetch("id_number") =~ /\A10\.\d{4,5}/
+  if params.has_key?("id_number") && params.fetch("id_number") =~ /\A10\.\d{4,5}/
     futures << [
       :metadata_by_doi,
-      Thread.new { crossref.doi(metadata.fetch("id_number")) }
+      Thread.new { crossref.doi(params.fetch("id_number")) }
     ]
   end
 
@@ -57,6 +59,6 @@ post "/validate" do
     memo[key] = thread.value
   end
 
-  encoder.encode(response)
+  jsonp(response)
 end
 

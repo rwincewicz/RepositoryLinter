@@ -1,6 +1,6 @@
 require "net/http"
 require "uri"
-require "yajl"
+require "multi_json"
 
 class Crossref
   def doi(doi)
@@ -11,7 +11,7 @@ class Crossref
 
     response = http.request(request)
 
-    Yajl::Parser.parse(response.body)
+    MultiJson.load(response.body)
   end
 end
 
