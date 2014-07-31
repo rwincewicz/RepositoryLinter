@@ -16,24 +16,24 @@ use Rack::Parser, parsers: {
 }
 
 post "/validate" do
-  response = {
+  record = {
     errors: []
   }
 
   unless params.has_key?("publisher")
-    response[:errors] << "Publisher field is missing"
+    record[:errors] << "Publisher field is missing"
   end
 
   unless params.has_key?("issn")
-    response[:errors] << "ISSN field is missing"
+    record[:errors] << "ISSN field is missing"
   end
 
   unless params.has_key?("title")
-    response[:errors] << "Title field is missing"
+    record[:errors] << "Title field is missing"
   end
 
   unless params.has_key?("publication")
-    response[:errors] << "Publication field is missing"
+    record[:errors] << "Publication field is missing"
   end
 
   romeo = Romeo.new
@@ -68,7 +68,7 @@ post "/validate" do
     ]
   end
 
-  futures.each_with_object(response) do |(key, thread), memo|
+  futures.each_with_object(record) do |(key, thread), memo|
     if :merge == key
       thread.value.each do |key, value|
         (memo[key] ||= []).concat(Array(value))
@@ -78,10 +78,12 @@ post "/validate" do
     end
   end
 
-  response.each do |key, value|
+  record.each do |key, value|
     value.uniq!
   end
 
-  jsonp(response)
+  response.headers["Access-Control-Allow-Origin"] = "*"
+
+  jsonp(record)
 end
 
