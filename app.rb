@@ -16,11 +16,24 @@ use Rack::Parser, parsers: {
 }
 
 post "/validate" do
-  response = {}
+  response = {
+    errors: []
+  }
 
   unless params.has_key?("publisher")
-    response[:errors] ||= []
     response[:errors] << "Publisher field is missing"
+  end
+
+  unless params.has_key?("issn")
+    response[:errors] << "ISSN field is missing"
+  end
+
+  unless params.has_key?("title")
+    response[:errors] << "Title field is missing"
+  end
+
+  unless params.has_key?("publication")
+    response[:errors] << "Publication field is missing"
   end
 
   romeo = Romeo.new
@@ -29,34 +42,44 @@ post "/validate" do
 
   if params.has_key?("issn")
     futures << [
-      :publisher_by_issn,
+      :publishers,
       Thread.new { romeo.issn(params.fetch("issn")) }
     ]
   end
 
   if params.has_key?("publisher")
     futures << [
-      :publisher_by_publisher,
+      :publishers,
       Thread.new { romeo.publisher(params.fetch("publisher")) }
     ]
   end
 
   if params.has_key?("publication")
     futures << [
-      :publisher_by_publication,
+      :publishers,
       Thread.new { romeo.title(params.fetch("publication")) }
     ]
   end
 
   if params.has_key?("id_number") && params.fetch("id_number") =~ /\A10\.\d{4,5}/
     futures << [
-      :metadata_by_doi,
+      :merge,
       Thread.new { crossref.doi(params.fetch("id_number")) }
     ]
   end
 
   futures.each_with_object(response) do |(key, thread), memo|
-    memo[key] = thread.value
+    if :merge == key
+      thread.value.each do |key, value|
+        (memo[key] ||= []).concat(Array(value))
+      end
+    else
+      (memo[key] ||= []).concat(Array(thread.value))
+    end
+  end
+
+  response.each do |key, value|
+    value.uniq!
   end
 
   jsonp(response)

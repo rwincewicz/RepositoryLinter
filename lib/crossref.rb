@@ -11,7 +11,18 @@ class Crossref
 
     response = http.request(request)
 
-    MultiJson.load(response.body)
+    metadata = MultiJson.load(response.body)
+
+    {
+      title: metadata["title"],
+      issn: metadata["ISSN"],
+      publishers: [{ name: metadata["publisher"] }],
+      publication: metadata["container-title"],
+      volume: metadata["volume"],
+      page: metadata["page"],
+      authors: metadata["author"],
+      subjects: metadata["subject"]
+    }
   end
 end
 
