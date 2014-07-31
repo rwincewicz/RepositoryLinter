@@ -2,7 +2,6 @@ $: << File.expand_path("../lib", __FILE__)
 
 require "sinatra"
 require "sinatra/jsonp"
-require "rack/parser"
 require "multi_json"
 require "crossref"
 require "romeo"
@@ -11,11 +10,10 @@ configure do
   set :server, :puma
 end
 
-use Rack::Parser, parsers: {
-  "application/json" => -> (body) { MultiJson.load(body) }
-}
-
 post "/validate" do
+  params = MultiJson.load(request.body)
+  request.logger.info(params)
+
   record = {
     errors: []
   }
@@ -61,10 +59,18 @@ post "/validate" do
     ]
   end
 
-  if params.has_key?("id_number") && params.fetch("id_number") =~ /\A10\.\d{4,5}/
+  if params.has_key?("title")
     futures << [
       :merge,
-      Thread.new { crossref.doi(params.fetch("id_number")) }
+      Thread.new { crossref.title(params.fetch("title")) }
+    ]
+  end
+
+  if params.has_key?("id_number") && params.fetch("id_number") =~ /10\.\d{4,5}/
+    doi = params.fetch("id_number")[/(10\.\d{4,5}.+)/, 1]
+    futures << [
+      :merge,
+      Thread.new { crossref.doi(doi) }
     ]
   end
 
@@ -86,4 +92,3 @@ post "/validate" do
 
   jsonp(record)
 end
-

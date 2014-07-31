@@ -24,6 +24,19 @@ class Crossref
       subjects: metadata["subject"]
     }
   end
+
+  def title(title)
+    uri = URI("http://search.crossref.org/dois?q=#{CGI.escape(%{"#{title}"})}")
+    http = Net::HTTP.new(uri.host, uri.port)
+    request = Net::HTTP::Get.new(uri.request_uri)
+    request["Accept"] = "application/json"
+
+    response = http.request(request)
+
+    metadata = MultiJson.load(response.body)
+
+    {
+      dois: metadata.map { |record| { title: record['title'], doi: record['doi'] } }
+    }
+  end
 end
-
-

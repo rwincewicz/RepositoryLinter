@@ -9,8 +9,6 @@ GEM
     puma (2.9.0)
       rack (>= 1.1, < 2.0)
     rack (1.5.2)
-    rack-parser (0.6.0)
-      rack
     rack-protection (1.5.3)
       rack
     shotgun (0.9)
@@ -32,7 +30,6 @@ DEPENDENCIES
   nokogiri
   oj
   puma
-  rack-parser
   shotgun
   sinatra
   sinatra-jsonp

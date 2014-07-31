@@ -31,9 +31,8 @@ class Romeo
   end
 
   def publisher(publisher)
-    url.query = Rack::Utils.build_query(ak: API_KEY, pub: publisher)
+    uri.query = Rack::Utils.build_query(ak: API_KEY, pub: publisher)
 
     request(uri)
   end
 end
-
