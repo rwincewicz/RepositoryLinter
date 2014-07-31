@@ -36,6 +36,25 @@ Will return:
 }
 ```
 
+## Installation
+
+This is a [Ruby](http://www.ruby-lang.org) web application using the
+[Sinatra](http://www.sinatrarb.com) DSL. It has been tested on Ruby 2.1 but
+should work on any version above 1.9.2.
+
+It uses [Bundler](http://bundler.io/) to manages dependencies and will run
+using the [Puma](http://puma.io/) web server by default.
+
+In order to use the SHERPA/RoMEO API, you must have an API key and specify
+this in your environment like so:
+
+```console
+$ ROMEO_API_KEY=decafbad bundle exec puma
+```
+
+(You can [request an API key](http://www.sherpa.ac.uk/romeo/apiregistry.php)
+if you do not already have one.)
+
 ## Accepted fields
 
 The input format to this API is based on [EPrints](http://www.eprints.org/)
