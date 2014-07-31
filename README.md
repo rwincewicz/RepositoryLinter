@@ -36,6 +36,78 @@ Will return:
 }
 ```
 
+## Accepted fields
+
+The input format to this API is based on [EPrints](http://www.eprints.org/)
+JSON export and, as such, supports the following fields:
+
+```javascript
+{
+  "creators": [
+    {
+      "name": {
+        "given": "Joe",
+        "family": "Bloggs"
+      }
+    }
+  ],
+  "title": "Some great article",
+  "publisher": "Publishing House",
+  "id_number": "10.1234/test",
+  "publication": "A great publication",
+  "issn": "1234-5678"
+}
+```
+
+It will return a list of possible field values in the following format:
+
+```javascript
+{
+    "errors": [
+        "Publisher field is missing"
+    ],
+    "funders": [],
+    "dois": [
+        {
+            "title": "foo",
+            "doi": "http: //dx.doi.org/10.1234/test"
+        }
+    ],
+    "title": [
+        "Foo bar"
+    ],
+    "issn": [
+        "1234-5678"
+    ],
+    "publishers": [
+        {
+            "name": "Publisher"
+        }
+    ],
+    "publications": [
+        {
+            "title": "Journal name",
+            "issn": "1234-5678"
+        }
+    ],
+    "volume": [
+        "113"
+    ],
+    "page": [
+        "94-103"
+    ],
+    "authors": [
+        {
+            "family": "Bloggs",
+            "given": "Joe"
+        }
+    ],
+    "subjects": [
+        "Management"
+    ]
+}
+```
+
 ## APIs used
 
 * [CrossRef](http://search.crossref.org/help/api);
