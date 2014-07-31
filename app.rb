@@ -5,6 +5,7 @@ require "sinatra/jsonp"
 require "multi_json"
 require "crossref"
 require "romeo"
+require "gtr"
 
 configure do
   set :server, :puma
@@ -34,8 +35,13 @@ post "/validate" do
     record[:errors] << "Publication field is missing"
   end
 
+  unless params.has_key?("creators")
+    record[:errors] << "Creators field is missing"
+  end
+
   romeo = Romeo.new
   crossref = Crossref.new
+  gtr = GTR.new
   futures = []
 
   if params.has_key?("issn")
@@ -71,6 +77,13 @@ post "/validate" do
     futures << [
       :merge,
       Thread.new { crossref.doi(doi) }
+    ]
+  end
+
+  if params.has_key?("creators")
+    futures << [
+      :merge,
+      Thread.new { gtr.projects(params.fetch("creators")) }
     ]
   end
 
