@@ -2,6 +2,7 @@ require "nokogiri"
 require "net/http"
 require "rack/utils"
 require_relative "publisher"
+require_relative "publication"
 
 class Romeo
   API_KEY = ENV.fetch("ROMEO_API_KEY")
@@ -15,7 +16,13 @@ class Romeo
   def request(uri)
     response = Net::HTTP.get_response(uri)
 
-    Nokogiri::XML(response.body).search("//publisher").map { |p| Publisher.new(p).to_hash }
+    publishers = Nokogiri::XML(response.body).search("//publisher").map { |p| Publisher.new(p).to_hash }
+    publications = Nokogiri::XML(response.body).search("//journal").map { |j| Publication.new(j).to_hash }
+
+    {
+      publishers: publishers,
+      publications: publications
+    }
   end
 
   def issn(issn)
@@ -36,3 +43,4 @@ class Romeo
     request(uri)
   end
 end
+

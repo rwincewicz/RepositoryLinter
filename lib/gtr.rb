@@ -3,7 +3,6 @@ require "net/http"
 require "rack/utils"
 
 class GTR
-  
   attr_reader :uri
 
   def initialize()

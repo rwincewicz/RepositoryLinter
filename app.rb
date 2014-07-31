@@ -35,6 +35,14 @@ post "/validate" do
     record[:errors] << "Publication field is missing"
   end
 
+  unless params.has_key?("id_number")
+    record[:errors] << "DOI field is missing"
+  end
+
+  unless params.has_key?("funders")
+    record[:errors] << "Funders field is missing"
+  end
+
   unless params.has_key?("creators")
     record[:errors] << "Creators field is missing"
   end
@@ -42,58 +50,38 @@ post "/validate" do
   romeo = Romeo.new
   crossref = Crossref.new
   gtr = GTR.new
+
   futures = []
 
   if params.has_key?("issn")
-    futures << [
-      :publishers,
-      Thread.new { romeo.issn(params.fetch("issn")) }
-    ]
+    futures << Thread.new { romeo.issn(params.fetch("issn")) }
   end
 
   if params.has_key?("publisher")
-    futures << [
-      :publishers,
-      Thread.new { romeo.publisher(params.fetch("publisher")) }
-    ]
+    futures << Thread.new { romeo.publisher(params.fetch("publisher")) }
   end
 
   if params.has_key?("publication")
-    futures << [
-      :publishers,
-      Thread.new { romeo.title(params.fetch("publication")) }
-    ]
+    futures << Thread.new { romeo.title(params.fetch("publication")) }
   end
 
   if params.has_key?("title")
-    futures << [
-      :merge,
-      Thread.new { crossref.title(params.fetch("title")) }
-    ]
+    futures << Thread.new { crossref.title(params.fetch("title")) }
   end
 
   if params.has_key?("id_number") && params.fetch("id_number") =~ /10\.\d{4,5}/
     doi = params.fetch("id_number")[/(10\.\d{4,5}.+)/, 1]
-    futures << [
-      :merge,
-      Thread.new { crossref.doi(doi) }
-    ]
+    futures << Thread.new { crossref.doi(doi) }
+    futures << Thread.new { crossref.funder(doi) }
   end
 
   if params.has_key?("creators")
-    futures << [
-      :merge,
-      Thread.new { gtr.projects(params.fetch("creators")) }
-    ]
+    futures << Thread.new { gtr.projects(params.fetch("creators")) }
   end
 
-  futures.each_with_object(record) do |(key, thread), memo|
-    if :merge == key
-      thread.value.each do |key, value|
-        (memo[key] ||= []).concat(Array(value))
-      end
-    else
-      (memo[key] ||= []).concat(Array(thread.value))
+  futures.each_with_object(record) do |thread, memo|
+    thread.value.each do |key, value|
+      (memo[key] ||= []).concat(Array(value))
     end
   end
 
@@ -105,3 +93,4 @@ post "/validate" do
 
   jsonp(record)
 end
+
