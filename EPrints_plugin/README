@@ -1,0 +1,41 @@
+######################
+
+Repository Linter Eprints Workflow Interface
+
+./cfg/static/javascript/auto/repository_linter_eprints.js into 
+[path_to_eprints_cfg]/static/javascript/auto/
+
+Then change in this file change
+
+var url = "localhost:4567/validate";
+
+to reflect a working linter API URL
+
+./cfg/static/style/auto/repository_linter_eprints.css into 
+[path_to_eprints_cfg]/static/style/auto/
+
+./cfg/static/style/images/lifebuoy.png into 
+[path_to_eprints_cfg]/static/style/images/
+
+#########################
+
+Add something to press in workflow file ([path_to_eprints_cfg]/workflows/eprint/default.xml) eg:
+
+<component type="XHTML"><button id="linter_button">SOS</button></component>
+
+NB keep that id unless prepared to change reference to it in js
+
+##########################
+
+
+jQuery + jQuery UI (if not already in use)
+
+*Above* the <epc:pin ref="head"/> element in the [where your Eprints templates live]/templates/default.xml put the following:
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/themes/smoothness/jquery-ui.css" />
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/jquery-ui.min.js"></script>
+
+###########################
+
+reload repository config
